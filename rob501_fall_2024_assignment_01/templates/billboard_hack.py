@@ -19,11 +19,9 @@ def billboard_hack():
     --------
     Ihack  - Hacked RGB intensity image, 8-bit np.array (i.e., uint8).
     """
-    # Bounding box in Y & D Square image - use if you find useful.
-    #bbox = np.array([[404, 490, 404, 490], [38,  38, 354, 354]])
-    #vertices = [(404, 354),  (490, 354), (490, 38), (404, 38)] # Bottom left, # Bottom right, # Top left, # Top right
-    vertices = [(354, 404),  (354, 490), (38, 490), (38, 404)] # Bottom left, # Bottom right, # Top left, # Top right, in y, x
-    #bbox = np.array([[38,  38, 354, 354], [404, 490, 404, 490]])
+    # Bounding box in Y & D Square image - use if you find useful. (NOTE: THIS IS with flipped coordinates (y,x) instead of (x,y))
+    bbox = np.array([[404, 490, 404, 490], [38,  38, 354, 354]])
+
     # Point correspondences.
     Iyd_pts = np.array([[416, 485, 488, 410], [40,  61, 353, 349]])
     Ist_pts = np.array([[2, 218, 218, 2], [2, 2, 409, 409]])
@@ -37,10 +35,8 @@ def billboard_hack():
     #--- FILL ME IN ---
     # Let's do the histogram equalization first.
     Ist_eq = histogram_eq(Ist)
-    # Compute the perspective homography we need: want to warp Ist_eq = I1, Iyd = I2 s.t. Iyd = H * Ist_eq
+    # Compute the perspective homography we need: 
     H, _ = dlt_homography(Ist_pts, Iyd_pts)
-    print(H)
-    quit()
 
     # Main 'for' loop to do the warp and insertion - 
     # this could be vectorized to be faster if needed!
@@ -49,21 +45,26 @@ def billboard_hack():
     # available in the matplotlib.path.Path class!
 
     # 1. Define path bbox_path that contains the billboard in Iyd
-    bbox_path = Path(vertices)
+    bbox_path = Path(bbox.T)
  
-    #bbox_path = Path(np.array([[bbox[0, i], bbox[1, i]] for i in range(bbox.shape[1])]))
     # 2. Define the inverse homography H_inv
     H_inv = np.linalg.inv(H)
+    H, _ = dlt_homography(Iyd_pts, Ist_pts) # Try this Homography instead?
     # 3. Iterate over all pixels in Iyd, and find the corresponding pixel in Ist_eq using bilinear interpolation
     for i in range(Iyd.shape[0]):
         for j in range(Iyd.shape[1]):
             # Check if the pixel is in the bbox:
             if bbox_path.contains_point([i, j]):
-                Iyd_pxl = np.array([i, j, 1])
-                src_pxl = np.dot(H_inv, Iyd_pxl)
+                pt = np.array([i, j, 1])
+                # src_pxl = np.dot(H_inv, pt) # Doesn't work?
+                src_pxl = np.dot(H, pt)
                 # Normalize src_pixel to [x, y, 1]
-                src_pxl = src_pxl / src_pxl[-1] 
-                print(f"src_pxl: {src_pxl}")
+                src_pxl = src_pxl / src_pxl[2]
+                # Clip the pixel to be within the image: deals with negative values, and values greater than the image size
+                src_pxl = np.clip(src_pxl, 0, [Ist.shape[0] - 1, Ist.shape[1] - 1, 1])
+                intensity = bilinear_interp(Ist_eq,src_pxl[:-1].reshape((2,1)))
+                Ihack[j,i] = np.array([intensity, intensity, intensity])
+                
 
 
                 # OLD code
@@ -83,8 +84,7 @@ def billboard_hack():
                 # b = bilinear_interp(Ist_eq, pt) # Gets corresponding grayscale pixel in Ist_eq
                 # # Replace RGB pixel with b
                 # Iyd[i, j, :] = b
-    quit()
-    Ihack = Iyd
+
 
     plt.imshow(Ihack)
     plt.show()

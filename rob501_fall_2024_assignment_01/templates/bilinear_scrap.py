@@ -34,27 +34,27 @@ def bilinear_interp(I, pt):
     # 2. Edge cases: x = x1 or x2, y = y1 or y2
     # 2a: if x == x1 or x2 and y == y1 or y2, return the pixel value at (x, y) (since we are at a corner)
     if x == x1 and y == y1: # top left
-        return int(I[y1, x1])
+        return int(I[x1, y1])
     elif x == x2 and y == y1: # top right
-        return int(I[y2, x1])
+        return int(I[x2, y1])
     elif x == x1 and y == y2: # bottom left
-        return int(I[y1, x2])
+        return int(I[x1, y2])
     elif x == x2 and y == y2: # bottom right
-        return int(I[y2, x2])
+        return int(I[x2, y2])
     # 2b: Vertical edges: if x == x1 or x2, interpolate between y1 and y2
     if x == x1 or x == x2:
         x = int(x)
-        b = ((y2 - y) * I[y1, x] + (y - y1) * I[y2, x]) / (y2 - y1)
+        b = ((y2 - y) * I[x, y1] + (y - y1) * I[x, y2]) / (y2 - y1)
         return int(round(b))
     # 2c: Horizontal edges: if y == y1 or y2, interpolate between x1 and x2
     if y == y1 or y == y2:
         y = int(y)
-        b = ((x2 - x) * I[y, x1] + (x - x1) * I[y, x2]) / (x2 - x1)
+        b = ((x2 - x) * I[x1, y] + (x - x1) * I[x2, y]) / (x2 - x1)
         return int(round(b))
     # 3. Interpolate x with y = y1
-    I_x_y1 = ((x2 - x) * I[y1, x1] + (x - x1) * I[y1, x2]) / (x2 - x1)
+    I_x_y1 = ((x2 - x) * I[x1, y1] + (x - x1) * I[x2, y1]) / (x2 - x1)
     # 4. Interpolate x with y = y2
-    I_x_y2 = ((x2 - x) * I[y2, x1] + (x - x1) * I[y2, x2]) / (x2 - x1)
+    I_x_y2 = ((x2 - x) * I[x1, y2] + (x - x1) * I[x2, y2]) / (x2 - x1)
     # 5. Interpolate between the two results using y, round the result since we want a pixel value
     b = ((y2 - y) * I_x_y1 + (y - y1) * I_x_y2) / (y2 - y1)
 
