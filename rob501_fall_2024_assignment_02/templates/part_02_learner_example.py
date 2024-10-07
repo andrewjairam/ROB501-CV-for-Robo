@@ -18,7 +18,14 @@ Ipts = cross_junctions(I, bpoly, Wpts)
 
 # Plot the points to check!
 plt.imshow(I, cmap = 'gray')
+# ANDREW TEST
+bpoly = np.append(bpoly, bpoly[:, None, 0], axis = 1) # Close the polygon.
+plt.plot(bpoly[0, :], bpoly[1, :], '-', c = 'b', linewidth = 3)
+plt.plot(bpoly[0, 0], bpoly[1, 0], 'x', c = 'b', markersize = 9)
+plt.text(bpoly[0, 0] - 40, bpoly[1, 0] - 10, "Upper Left", c = 'b')
 
+plt.show()
+quit()
 plt.plot(Ipts_ref[0, :], Ipts_ref[1, :], 'o', c = 'r', markersize = 8)
 for i in range(0, Ipts_ref.shape[1]):
     plt.text(Ipts_ref[0, i] - 10, Ipts_ref[1, i] - 10, str(i + 1), c = 'r')
