@@ -4,6 +4,7 @@ from find_jacobian import find_jacobian
 from dcm_from_rpy import dcm_from_rpy
 from rpy_from_dcm import rpy_from_dcm
 
+
 #----- Functions Go Below -----
 
 def epose_from_hpose(T):
@@ -55,21 +56,42 @@ def pose_estimate_nls(K, Twc_guess, Ipts, Wpts):
     # Some hints on structure are included below...
 
     # 1. Convert initial guess to parameter vector (6 x 1).
-    # ...
-
-    iter = 1
+    # 1a. want 6x1 parameter vector [x, y, z, roll, pitch, yaw] from Twc_guess: can use epose_from_hpose
+    params = epose_from_hpose(Twc_guess)
+    iter = 1 # Track num iterations
+    # 1.b: initialize params_prev: Track best estimate in params_prev
+    params_prev = np.zeros((6, 1))
 
     # 2. Main loop - continue until convergence or maxIters.
     while True:
         # 3. Save previous best pose estimate.
-        # ...
+        params_prev = params.copy()
 
         # 4. Project each landmark into image, given current pose estimate.
         for i in np.arange(tp):
-            pass
+            # 4.a: Get rotation and translation matrix/vector from current params.
+            Rwc = dcm_from_rpy(params[3:6]) # params[3:6] are roll, pitch, yaw
+            twc = params[:3].reshape(-1, 1) # just take x, y, z
+            # 4b. Compute pose guess: 
+            # Twc in world frame, so x_guess = K * Rwc.T * (Wpt - twc), Wpt is Wpts[:, i]: the ith world point
+            Wpt = Wpts[:, i].reshape(-1, 1)
+            x_guess = K @ Rwc.T @ (Wpt - twc)
+            # 4c. Normalize x_guess to get projected point and discard z component to get 2x1 pixel coords
+            x_guess = x_guess / x_guess[2, 0]
+            x_guess = x_guess[:2, 0].reshape(-1, 1) 
+            # 4d. Compute e(x): the difference between the projected point and the observed point.
+            # It's defined that we wanna use dY as the variable from above, set the two error terms as dY[i] and dY[i+1]
+            x_obs = ps[2*i:2*i+2, 0].reshape(-1, 1)
+            dY[2*i:2*i+2] = x_guess - x_obs
+            # 4e. Compute Jacobian for this 3x1 Wpt
+            J[2*i:2*i+2, :] = find_jacobian(K, hpose_from_epose(params), Wpt).reshape(2, 6)
+
 
         # 5. Solve system of normal equations for this iteration.
-        # ...
+        # 5a. compute delta_x = -inv(J^T J) J^T dY
+        delta_x = -inv(J.T @ J) @ J.T @ dY
+        # 5b. Update params = params + delta_x
+        params = params + delta_x
 
         # 6. Check - converged?
         diff = norm(params - params_prev)
@@ -84,7 +106,8 @@ def pose_estimate_nls(K, Twc_guess, Ipts, Wpts):
         iter += 1
 
     # 7. Compute and return homogeneous pose matrix Twc.
-
+    # Take final params and call hpose_from_epose
+    Twc = hpose_from_epose(params)
     #------------------
 
     correct = isinstance(Twc, np.ndarray) and \

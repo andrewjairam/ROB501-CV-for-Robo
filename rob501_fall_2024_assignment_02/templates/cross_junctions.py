@@ -119,8 +119,10 @@ def cross_junctions(I, bpoly, Wpts):
     Wymin, Wymax = Wymin - horizontal_border, Wymax + horizontal_border
     # Now can make this into a 2x4, looking at bpoly, order is upper left, upper right, lower right, lower left
     Wbbox = np.array([[Wxmin, Wxmax, Wxmax, Wxmin], [Wymin, Wymin, Wymax, Wymax]])
+
     # 2. Compute homography from world to image frame: want to map Wbbox to bpoly, so Wbbox is I1pts and bpoly is I2pts
     H, _ = dlt_homography(Wbbox, bpoly) # H brings us from Wpts to points on img
+
     # 3. Map Wpts to image frame using H: NOTE that Wpts in z are all 0, need pts as x, y, 1
     Wpts = np.vstack((Wpts[:2], np.ones(Wpts.shape[1]))) # Wpts.shape = 3 x n (n = 48 for 48 junctions), H*Wpts gives us 3 x n then also
     Ipts = np.dot(H, Wpts).T # Ipts.shape = n x 3: transposing gets each elem as x,y,z coordinates
@@ -128,17 +130,20 @@ def cross_junctions(I, bpoly, Wpts):
     Ipts = Ipts / Ipts[:, 2].reshape(-1, 1) # Have to do this reshape to do the division element-wise
     # Round x and y to get pixel coordinates since in refining, need rounded x and y's. take Ipts[:, :2] to discard z coords
     Ipts = np.round(Ipts[:, :2]).astype(np.float64) # Need float64 since this is desired output type given
+
     # INTERMEDIATE STEP: return Ipts, plot them on img, see if junctions are generally in right place
     # return Ipts # On First image, already looks good: Can pass to saddle to be sure, with small window size
+
     # 4. Refine junctions using saddle point alg, need to define patch size (as discussed, should be small)
     patch_size = 10
     for i in range(Ipts.shape[0]):
         # Extract patch around corner: convert to int since we need to index into I, already rounded though
         x, y = Ipts[i].astype(int)
-        # convert 
+
         # # DEBUG STEP: visualize patch
         # patchbbox = np.array([[x-patch_size, x+patch_size, x+patch_size, x-patch_size], [y-patch_size, y-patch_size, y+patch_size, y+patch_size]])
         # return Ipts, patchbbox # Already pretty accurate on 1st image, can tune if autolab fails
+
         patch = I[y-patch_size:y+patch_size, x-patch_size:x+patch_size]
         # Refine saddle point
         pt = saddle_point(patch)
@@ -147,6 +152,7 @@ def cross_junctions(I, bpoly, Wpts):
         pt_y = pt[1] - patch_size
         Ipts[i, 0] = x + pt_x
         Ipts[i, 1] = y + pt_y
+
     # 5. Return Ipts, output wants 2xn np array
     Ipts = Ipts.T # Transpose to get 2 x n
     #------------------

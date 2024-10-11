@@ -182,10 +182,9 @@ def find_jacobian(K, Twc, Wpt):
     J[1, 4] = fy/Zc * (dCp_pitch[1] - Yc/Zc * dCp_pitch[2])
     # dv/dyaw = fy/Zc * (dYc/dyaw - Yc/Zc * dZc/dyaw)
     J[1, 5] = fy/Zc * (dCy_yaw[1] - Yc/Zc * dCy_yaw[2])
-    print(J)
-    quit()
+    # print(J)
+    # quit()
     #------------------
-    J = None
     correct = isinstance(J, np.ndarray) and \
         J.dtype == np.float64 and J.shape == (2, 6)
 

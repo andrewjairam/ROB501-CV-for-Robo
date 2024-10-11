@@ -11,7 +11,6 @@ Wpts = np.load('../data/world_pts.npy')
 
 # Load initial guess for camera pose.
 Twc_guess = np.load('../data/camera_pose_guess_01.npy')
-
 # Load detected cross-junctions (2D - in image).
 Ipts = np.load('../data/cross_junctions_01.npy')
 
