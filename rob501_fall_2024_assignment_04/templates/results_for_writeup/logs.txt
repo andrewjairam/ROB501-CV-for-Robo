@@ -1,0 +1,29 @@
+Time taken to run the function with gain 0.1 and use_zest True: 20.5533 seconds
+Time taken to run the function with gain 0.1 and use_zest False: 20.2612 seconds
+
+Time taken to run the function with gain 0.5 and use_zest True: 4.0312 seconds
+Time taken to run the function with gain 0.5 and use_zest False: 4.0656 seconds
+
+Time taken to run the function with gain 1 and use_zest True: 1.7011 seconds
+Time taken to run the function with gain 1 and use_zest False: 1.5326 seconds
+
+Time taken to run the function with gain 1.25 and use_zest True: 2.5571 seconds
+Time taken to run the function with gain 1.25 and use_zest False: 2.1570 seconds
+
+Time taken to run the function with gain 1.5 and use_zest True: 4.2550 seconds
+Time taken to run the function with gain 1.5 and use_zest False: 3.6075 seconds
+
+IBVS simulation timed out after 100 iterations, for gain 1.75 and use_z_est True
+Time taken to run the function with gain 1.75 and use_zest True: 22.6473 seconds
+Time taken to run the function with gain 1.75 and use_zest False: 9.3543 seconds
+
+IBVS simulation timed out after 100 iterations, for gain 2 and use_z_est True
+Time taken to run the function with gain 2 and use_zest True: 21.6495 seconds
+IBVS simulation timed out after 100 iterations, for gain 2 and use_z_est False
+Time taken to run the function with gain 2 and use_zest False: 21.5434 seconds
+
+Observations:
+for gain <= 1: get "clean" control: points move smoothly to desired positions
+after gain <= 1, i.e. starting from 1.25, camera starts to jitter quickly
+    for lower gains the camera converges, just overshoots the initial positions, taking longer to converge
+    for higher gains, the camera just rapidly jitters, never converging. on every frame, looks like the camera is at a random position

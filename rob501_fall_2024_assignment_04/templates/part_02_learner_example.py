@@ -24,7 +24,7 @@ Twc_last[0:3, :] = np.hstack((C_last, t_last))
 Twc_init = np.eye(4)
 Twc_init[0:3, :] = np.hstack((C_init, t_init))
 
-gain = 0.1
+gain = 2# 0.1
 
 # Sanity check the controller output if desired.
 # ...

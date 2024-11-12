@@ -12,7 +12,7 @@ IMAGE_SIZE = (800.0, 600.0)
 Z_GUESS = 2.0
 
 # Maximum number of iterations to run.
-MAX_ITERS = 1000
+MAX_ITERS = 100
 
 def project_into_camera(Twc, K, pts):
     """Project points into camera. Returns truth depths, too."""
@@ -78,8 +78,8 @@ def ibvs_simulation(Twc_init,
         # Get next control command.
         v = ibvs_controller(K, pts_des, pts_obs, zs, gain)
 
-        # If nearly stopped, bail out.
-        if norm(v) < 1e-4: break 
+        # If nearly stopped, bail out: EDIT USING return to stop the function
+        if norm(v) < 1e-4: return#break 
 
         # Delta pose update for camera.
         Tdelta = SE3.exp(v[:, 0])
@@ -104,3 +104,5 @@ def ibvs_simulation(Twc_init,
         
         # Increment counter.
         i += 1
+    # If here, then we stopped due to iteration limit: timed out
+    print(f"IBVS simulation timed out after {MAX_ITERS} iterations, for gain {gain} and use_z_est {do_depth}")

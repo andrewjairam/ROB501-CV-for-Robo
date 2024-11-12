@@ -23,11 +23,13 @@ def ibvs_jacobian(K, pt, z):
     #--- FILL ME IN ---
     # Copy from Corke text
     J = None
-    # 1. Get normalized image coordinates
-    x = pt[0][0] / z
-    y = pt[1][0] / z
-    # 2. get u_bar, v_bar. Assume f = fx = fy
+    # 1. Get image coordinates relative to camera origin
     f = K[0][0] # fx = f / rho_u, fy = f / rho_v
+    cx = K[0, 2]
+    cy = K[1, 2]
+    x = (pt[0][0] - cx) / f
+    y = (pt[1][0] - cy) / f
+    # 2. get u_bar, v_bar. Assume f = fx = fy
     # u_bar = f/rho_u * x = fx * x, v_bar = f/rho_v * y = fy * y
     u_bar = f * x
     v_bar = f * y

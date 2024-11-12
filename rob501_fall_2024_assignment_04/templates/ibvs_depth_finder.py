@@ -27,6 +27,27 @@ def ibvs_depth_finder(K, pts_obs, pts_prev, v_cam):
     zs_est = np.zeros(n)
 
     #--- FILL ME IN ---
+    for i in range(n):
+        # 1. get Jt and Jw: call ibvs_jacobian w/ z = 1, split 2x6 into 2 2x3's
+        pt_obs = pts_obs[:, i].reshape(2, 1)
+        pt_prev = pts_prev[:, i].reshape(2, 1)
+        J_i = ibvs_jacobian(K, pt_obs, 1)
+        J_t = J_i[:, :3]
+        J_w = J_i[:, 3:]
+        # 2. Split v_cam into v and w
+        v = v_cam[:3].reshape(3, 1)
+        w = v_cam[3:].reshape(3, 1)
+        # 3. Get u_dot, v_dot: how? no clear way... try to use approximation: p_obs - p_prev? would assume that timesteps are ~ 1
+        u_dot = pt_obs[0][0] - pt_prev[0][0]
+        v_dot = pt_obs[1][0] - pt_prev[1][0]
+        vel = np.array([[u_dot], [v_dot]]).reshape(2, 1)
+        # Form Ax = b, x = 1/z
+        A = J_t @ v # 2x6 * 6x1 = 2x1
+        b = vel - J_w @ w # 2x1 - 2x3 * 3x1 = 2x1
+        # Solve for x using Linear LSQ
+        x = inv(A.T @ A) @ A.T @ b
+        # 4. add to zs_est, z = 1/x
+        zs_est[i] = 1 / x[0][0]
 
     #------------------
 
